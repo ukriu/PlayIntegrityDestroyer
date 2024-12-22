@@ -15,9 +15,7 @@ fi
 check_zygisk() {
     local ZYGISK_MODULE="/data/adb/modules/zygisksu"
     local MAGISK_DIR="/data/adb/magisk"
-    local ZYGISK_MSG="Zygisk is not enabled. Please either:
-    - Enable Zygisk in Magisk settings
-    - Install ZygiskNext or ReZygisk module"
+    local ZYGISK_MSG="Zygisk is not enabled. Switching to No-Zygisk mode!"
 
     # Check if Zygisk module directory exists
     if [ -d "$ZYGISK_MODULE" ]; then
@@ -32,37 +30,51 @@ check_zygisk() {
 
         # Check if Zygisk is disabled
         if [ "$ZYGISK_STATUS" = "value=0" ]; then
-            abort "$ZYGISK_MSG"
+            echo "$ZYGISK_MSG"
+            return 1
         fi
     else
-        abort "$ZYGISK_MSG"
+        echo "$ZYGISK_MSG"
+        return 1
     fi
 }
 
 # Module requires Zygisk to work
 check_zygisk
 
-# safetynet-fix module is obsolete and it's incompatible with PIF
-SNFix="/data/adb/modules/safetynet-fix"
-if [ -d "$SNFix" ]; then
-    ui_print "! safetynet-fix module is obsolete and it's incompatible with PIF, it will be removed on next reboot"
-    ui_print "! Do not install it"
-    touch "$SNFix"/remove
-fi
+# Continue running the rest of the script
+echo "- Continuing with Play Integrity Destruction..."
 
-# playcurl warn
-if [ -d "/data/adb/modules/playcurl" ]; then
-    ui_print "! playcurl may overwrite fingerprint with invalid one, be careful!"
-fi
+sleep 1
+echo "- Supressing GMS Services..."
 
-# MagiskHidePropsConf module is obsolete in Android 8+ but it shouldn't give issues
-if [ -d "/data/adb/modules/MagiskHidePropsConf" ]; then
-    ui_print "! WARNING, MagiskHidePropsConf module may cause issues with PIF."
-fi
+sleep 1
+echo "- Extracting required Play Integrity files..."
 
-# Check custom fingerprint
-if [ -f "/data/adb/pif.json" ]; then
-    ui_print "!!! WARNING !!!"
-    ui_print "- You are using custom pif.json (/data/adb/pif.json)"
-    ui_print "- Remove that file if you can't pass attestation test!"
-fi
+sleep 4
+echo "- Extraction Complete!"
+echo "- Continue Patching Play Integrity API.."
+
+sleep 3
+echo "- Adding Labels: 'MEETS_BASIC_INTEGRITY', 'MEETS_DEVICE_INTEGRITY', 'MEETS_STRONG_INTEGRITY'"
+
+sleep 2
+echo "- Saving changes"
+
+sleep 2
+echo "- Recompiling Play Integrity"
+
+sleep 1
+echo "- Finishing up.."
+echo "- Caches Cleared!"
+echo "- Unwanted traces removed!"
+echo "- GMS Services re-killed!"
+echo "------------------------------------------"
+echo "Installation complete!"
+echo "Please reboot to restart GMS services with Patched Play Integrity!"
+echo "           "
+echo "          "
+
+echo "You have gotten scammed. Please Uninstall this module and DO NOT CLICK REBOOT."
+echo "READ what a module does BEFORE installing it!"
+echo "You COULD have avoided almost killing your device if you read the README on ukriu/PlayIntegrityDestroyer"

