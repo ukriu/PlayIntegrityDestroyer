@@ -1,6 +1,6 @@
 {
-  "version": "3",
-  "versionCode": 3,
+  "version": "v4",
+  "versionCode": 4,
   "zipUrl": "https://github.com/ukriu/PlayIntegrityDestroyer/releases/download/latest/PlayIntegrityDestroyer.zip",
   "changelog": "https://raw.githubusercontent.com/ukriu/PlayIntegrityDestroyer/main/changelog.md"
 }
